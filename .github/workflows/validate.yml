@@ -8,6 +8,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,10 +22,15 @@ jobs:
         run: |
           npm install --global @salesforce/cli
 
-      - name: Write JWT key to file
+      - name: Write JWT key to file (use printf to preserve newlines)
         run: |
-          echo "$SF_JWT_KEY" > server.key
+          printf "%s" "$SF_JWT_KEY" > server.key
         shell: bash
+        env:
+          SF_JWT_KEY: ${{ secrets.SF_JWT_KEY }}
+
+      - name: Debug key first line (should print header)
+        run: head -n 1 server.key
 
       - name: Authenticate to Salesforce (JWT)
         run: |
@@ -33,12 +39,13 @@ jobs:
             --jwt-key-file server.key \
             --username "$SF_USERNAME" \
             --instance-url "$SF_ORG_URL" \
-            --set-default --loglevel DEBUG
+            --set-default
         env:
           SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
           SF_JWT_KEY: ${{ secrets.SF_JWT_KEY }}
           SF_USERNAME: ${{ secrets.SF_USERNAME }}
           SF_ORG_URL: ${{ secrets.SF_ORG_URL }}
+          SFDX_LOG_LEVEL: DEBUG
 
       - name: List Authenticated Orgs (Debug)
         run: sf org list
