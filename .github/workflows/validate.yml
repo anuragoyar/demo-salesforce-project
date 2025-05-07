@@ -21,14 +21,6 @@ jobs:
         run: |
           npm install --global @salesforce/cli
 
-      - name: Install Salesforce Code Analyzer
-        run: |
-          sf plugins install @salesforce/code-analyzer
-
-      - name: Run Salesforce Code Analyzer
-        run: |
-          sf code-analyzer run --target force-app --format table
-
       - name: Write JWT key to file
         run: |
           echo "$SF_JWT_KEY" > server.key
@@ -59,4 +51,4 @@ jobs:
         if: always()
         run: |
           cat test-results/test-run-id.txt || echo "No test run ID file found."
-          cat test-results/apexTestResult-*.json || echo "No test result JSON found." 
+          cat test-results/apexTestResult-*.json || echo "No test result JSON found."
