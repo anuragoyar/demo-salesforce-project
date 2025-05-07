@@ -1,0 +1,59 @@
+name: Salesforce Validate
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Salesforce CLI
+        run: |
+          npm install --global sfdx-cli
+
+      - name: Install Salesforce Code Analyzer
+        run: |
+          sfdx plugins:install @salesforce/code-analyzer
+
+      - name: Run Salesforce Code Analyzer
+        run: |
+          sfdx code-analyzer:run --target force-app --format table
+
+      - name: Write JWT key to file
+        run: |
+          echo "$SF_JWT_KEY" > server.key
+        shell: bash
+
+      - name: Authenticate to Salesforce (JWT)
+        run: |
+          sfdx auth:jwt:grant \
+            --clientid "$SF_CLIENT_ID" \
+            --jwtkeyfile server.key \
+            --username "$SF_USERNAME" \
+            --instanceurl "$SF_ORG_URL" \
+            --setdefaultdevhubusername
+        env:
+          SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID 
+          SF_JWT_KEY: ${{ secrets.SF_JWT_KEY }}
+          SF_USERNAME: ${{ secrets.SF_USERNAME }}
+          SF_ORG_URL: ${{ secrets.SF_ORG_URL }}
+
+      - name: Run Apex tests
+        run: |
+          sfdx force:apex:test:run --wait 10 --resultformat human --testlevel RunLocalTests --outputdir test-results
+
+      - name: Display Apex test results
+        if: always()
+        run: |
+          cat test-results/test-run-id.txt || echo "No test run ID file found."
+          cat test-results/apexTestResult-*.json || echo "No test result JSON found." 
