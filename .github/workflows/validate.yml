@@ -1,7 +1,8 @@
 name: Salesforce Authentication
 
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize] 
 
 jobs:
   auth-salesforce:
