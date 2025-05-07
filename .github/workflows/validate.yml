@@ -43,7 +43,7 @@ jobs:
             --instanceurl "$SF_ORG_URL" \
             --setdefaultdevhubusername
         env:
-          SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID 
+          SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
           SF_JWT_KEY: ${{ secrets.SF_JWT_KEY }}
           SF_USERNAME: ${{ secrets.SF_USERNAME }}
           SF_ORG_URL: ${{ secrets.SF_ORG_URL }}
