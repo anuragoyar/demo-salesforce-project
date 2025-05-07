@@ -12,15 +12,16 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Salesforce CLI
-        run: |
-          npm install --global sfdx-cli
+        run: npm install --global sfdx-cli
+
+      - name: Write JWT Key from Secret
+        run: echo "${{ secrets.SF_JWT_KEY }}" > server.key
 
       - name: Authenticate to Salesforce using JWT
         run: |
-          echo "Authenticating to Salesforce..."
           sfdx auth:jwt:grant \
             --clientid ${{ secrets.SF_CLIENT_ID }} \
-            --jwtkeyfile assets/server.key \
+            --jwtkeyfile server.key \
             --username ${{ secrets.SF_USERNAME }} \
             --instanceurl ${{ secrets.SF_INSTANCE_URL }}
 
