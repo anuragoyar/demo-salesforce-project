@@ -41,7 +41,7 @@ jobs:
             --jwt-key-file server.key \
             --username "$SF_USERNAME" \
             --instance-url "$SF_ORG_URL" \
-            --set-default
+            --set-default --loglevel DEBUG
         env:
           SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
           SF_JWT_KEY: ${{ secrets.SF_JWT_KEY }}
