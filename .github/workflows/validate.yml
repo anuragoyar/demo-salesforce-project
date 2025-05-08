@@ -12,8 +12,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Salesforce CLI (new @salesforce/cli)
+      - name: Install Salesforce CLI (@salesforce/cli)
         run: npm install --global @salesforce/cli
+
+      - name: Install jq (JSON processor)
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Write JWT Key from Secret
         run: echo "${{ secrets.SF_JWT_KEY }}" > server.key
@@ -31,14 +34,19 @@ jobs:
       - name: Confirm authentication
         run: sf org list
 
-      - name: Run all Apex tests
+      - name: Run all Apex tests (JSON)
         run: |
-          sf apex test run --test-level RunLocalTests --result-format human --output-dir test-results --wait 10 --target-org my-org
+          sf apex test run --test-level RunLocalTests \
+            --result-format json \
+            --output-dir test-results \
+            --wait 10 \
+            --target-org my-org
 
-      - name: Check test results
+      - name: Fail job if any test fails
         run: |
-          if grep -q "Fail" test-results/test-result.txt; then
-            echo "Some tests failed."
+          numFailures=$(jq '.summary.failing' test-results/test-result.json)
+          if [ "$numFailures" -gt 0 ]; then
+            echo "$numFailures test(s) failed."
             exit 1
           else
             echo "All tests passed."
