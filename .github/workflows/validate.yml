@@ -34,12 +34,15 @@ jobs:
       - name: Confirm authentication
         run: sf org list
 
+      - name: Create test-results directory
+        run: mkdir -p test-results
+
       - name: Run all Apex tests (JSON)
         run: |
           sf apex test run --test-level RunLocalTests \
             --result-format json \
-            --output-dir test-results \
-            --wait 10 \
+            --result-file test-results/test-result.json \
+            --wait 20 \
             --target-org my-org
 
       - name: Fail job if any test fails
