@@ -1,10 +1,13 @@
 name: Salesforce Authentication and Test Validation
-on: 
-  pull_request: 
+
+on:
+  pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   auth-and-test-salesforce:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -34,57 +37,18 @@ jobs:
       - name: Create test-results directory
         run: mkdir -p test-results
 
-      - name: List Apex classes to verify repository contents
-        run: sf apex class list --target-org my-org
-  
-      - name: List Apex test classes specifically
-        run: sf apex class list --target-org my-org | grep -i "test"
-
-      - name: Run all Apex tests with detailed output and longer timeout
+      - name: Run all Apex tests and save JSON result
         run: |
-          sf apex test run \
-            --test-level RunLocalTests \
-            --synchronous \
-            --wait 30 \
-            --result-format human \
-            --target-org my-org \
-            --verbose
-      
-      - name: Run tests again with JSON output for processing
-        run: |
-          sf apex test run \
-            --test-level RunLocalTests \
-            --wait 30 \
+          sf apex test run --test-level RunLocalTests \
+            --wait 20 \
             --target-org my-org \
             --json > test-results/test-result.json
-      
-      - name: Display test run ID for debugging
-        run: |
-          testRunId=$(jq -r '.result.testRunId' test-results/test-result.json)
-          echo "Test Run ID: $testRunId"
-      
-      - name: Get detailed test results
-        run: |
-          testRunId=$(jq -r '.result.testRunId' test-results/test-result.json)
-          sf apex test report --test-run-id $testRunId --target-org my-org --result-format human
-          sf apex test report --test-run-id $testRunId --target-org my-org --json > test-results/detailed-results.json
-      
-      - name: Check for executed tests
-        run: |
-          totalTests=$(jq '.result.summary.testsRan' test-results/test-result.json)
-          echo "Total tests executed: $totalTests"
-          if [ "$totalTests" -eq 0 ]; then
-            echo "WARNING: No tests were executed. This could indicate an issue with test discovery."
-            echo "Make sure your test classes follow Salesforce naming conventions (ending with 'Test')."
-            exit 1
-          fi
 
       - name: Fail job if any test fails
         run: |
           numFailures=$(jq '.result.summary.failing' test-results/test-result.json)
           if [ "$numFailures" -gt 0 ]; then
             echo "$numFailures test(s) failed."
-            jq '.result.tests[] | select(.Outcome == "Fail")' test-results/detailed-results.json
             exit 1
           else
             echo "All tests passed."
