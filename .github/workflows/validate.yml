@@ -1,11 +1,11 @@
-name: Salesforce Authentication
+name: Salesforce Authentication and Test Validation
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  auth-salesforce:
+  auth-and-test-salesforce:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,3 +30,16 @@ jobs:
 
       - name: Confirm authentication
         run: sf org list
+
+      - name: Run all Apex tests
+        run: |
+          sf apex test run --test-level RunLocalTests --result-format human --output-dir test-results --wait 10 --target-org my-org
+
+      - name: Check test results
+        run: |
+          if grep -q "Fail" test-results/test-result.txt; then
+            echo "Some tests failed."
+            exit 1
+          else
+            echo "All tests passed."
+          fi
