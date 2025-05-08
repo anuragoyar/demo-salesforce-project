@@ -1,0 +1,44 @@
+name: Deploy to Salesforce on Main Merge
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli
+
+      - name: Write JWT key to file
+        run: echo "$SF_JWT_KEY" > server.key
+        shell: bash
+
+      - name: Authenticate to Salesforce (JWT)
+        run: |
+          sf org login jwt \
+            --client-id "$SF_CLIENT_ID" \
+            --jwt-key-file server.key \
+            --username "$SF_USERNAME" \
+            --instance-url "$SF_ORG_URL" \
+            --set-default
+        env:
+          SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
+          SF_JWT_KEY: ${{ secrets.SF_JWT_KEY }}
+          SF_USERNAME: ${{ secrets.SF_USERNAME }}
+          SF_ORG_URL: ${{ secrets.SF_ORG_URL }}
+
+      - name: Deploy source to Salesforce
+        run: |
+          sf project deploy start --wait 20 --target-org my-org --ignore-conflicts --test-level RunLocalTests
