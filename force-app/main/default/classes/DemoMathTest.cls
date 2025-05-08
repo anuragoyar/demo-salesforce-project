@@ -5,4 +5,4 @@ private class DemoMathTest {
         System.assertEquals(0, DemoMath.add(-2, 2), '-2 + 2 should equal 0');
         System.assertEquals(-5, DemoMath.add(-2, -3), '-2 + -3 should equal -5');
     }
-} 
+}
