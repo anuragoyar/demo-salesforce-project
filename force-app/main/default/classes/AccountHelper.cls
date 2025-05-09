@@ -12,6 +12,7 @@ public with sharing class AccountHelper {
 
     // Method to update Account name
     public static Account updateAccountName(Id accountId, String newName) {
+        // blank name check - test
         if (String.isBlank(newName)) {
             throw new IllegalArgumentException('New name cannot be blank');
         }
